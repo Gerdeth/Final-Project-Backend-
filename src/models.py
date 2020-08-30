@@ -1,5 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-
 db = SQLAlchemy()
 
 # class User(db.Model):
@@ -26,6 +25,8 @@ class User(db.Model):
      email = db.Column(db.String(120), unique=False, nullable=False)
      password = db.Column(db.String(80), unique=False, nullable=False)
      is_active = db.Column(db.Boolean(), default=False)
+     portfolio = db.relationship('Portfolio', lazy='dynamic')
+
 
      def __repr__(self):
         return '<User %r>' % self.username
@@ -36,7 +37,8 @@ class User(db.Model):
             "username": self.username,
             "email": self.email,
             "password": self.password,
-            "is_active": self.is_active
+            "is_active": self.is_active,
+            "portfolio": [portfolio.serialize() for portfolio in self.portfolios.all()]
             # do not serialize the password, its a security breach
         }
 
@@ -73,8 +75,8 @@ class Portfolio(db.Model):
      shares= db.Column(db.Integer, unique=False, nullable=False)
      totalReturn=db.Column(db.Integer, unique=False, nullable=False)
     # password = db.Column(db.String(80), unique=False, nullable=False)
-     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
-
+     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+     user = db.relationship('User')
      def __repr__(self):
         return '<Portfolio %r>' % self.companyName
 

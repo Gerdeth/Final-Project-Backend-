@@ -31,12 +31,14 @@ def sitemap():
     return generate_sitemap(app)
 
 @app.route('/users', methods=['GET'])
-def handle_user():
+def get_all_user():
     users_query = User.query.all()
     all_users = list(map(lambda x: x.serialize(), users_query))
 
-    return jsonify(all_users), 200
-
+    return jsonify({
+        "message": "These are all the available users",
+        "users": all_users
+    }),200
 @app.route('/login', methods=['POST'])
 def handle_login():
     request_data=request.get_json()
@@ -48,6 +50,9 @@ def handle_login():
 @app.route('/register_user', methods=['POST'])
 def handle_register_user():
     request_data= request.get_json()
+    user=User.query.filter_by(username=request_data['username']).first()
+    if user:
+        return jsonify({'message': 'username already exists'}), 409
     new_user = User(
         username=request_data["username"],
         email=request_data["email"], 
@@ -56,12 +61,12 @@ def handle_register_user():
         )
     db.session.add(new_user)
     db.session.commit()
-    response_body = {
+    return jsonify({
         "msg": "User was created "
-    }
-    return jsonify(response_body), 200
+    }),200
+    
 
-@app.route('/portfolio/id', methods=['GET'])
+@app.route('/portfolio/<user_id>', methods=['GET'])
 def get_portfolio():
     user_portfolio= Portfolio.query.filter_by(id=id).first()
     if user_portfolio != None:
@@ -69,8 +74,8 @@ def get_portfolio():
     return jsonify({"message": "Add stocks to your portfolio"})
         
 
-@app.route('/portfolio/id', methods=['POST'])
-def post_portfolio():
+@app.route('/portfolio/<user_id>', methods=['POST'])
+def post_portfolio(user_id):
     request_data= request.get_json()
     stock_added={
         "symbol":request_data["symbol"],
@@ -88,7 +93,7 @@ def post_portfolio():
 
     return jsonify(response_body), 200
 
-@app.route('/portfolio/<id>', methods=['DELETE'])
+@app.route('/portfolio/<user_id>', methods=['DELETE'])
 def handle_portfolio(id):
     stock_sold= Portfolio.query.filter_by(id=id).first()
     if stock_sold != None:
