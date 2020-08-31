@@ -1,4 +1,4 @@
 {
-"python.pythonPath": "/home/gitpod/.pyenv/shims/python2",
+"python.pythonPath": ".venv/bin/python",
 "python.linting.pylintEnabled": true
 }

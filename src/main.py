@@ -39,11 +39,13 @@ def get_all_user():
         "message": "These are all the available users",
         "users": all_users
     }),200
+
+
 @app.route('/login', methods=['POST'])
 def handle_login():
     request_data=request.get_json()
     users_query = User.query.filter_by(email=request_data["email"]).first()
-    if users_query != None :
+    if users_query:
         return jsonify(users_query.serialize()), 200 
     return  jsonify({"Message":"User not found"})
 
@@ -66,25 +68,33 @@ def handle_register_user():
     }),200
     
 
-@app.route('/portfolio/<user_id>', methods=['GET'])
-def get_portfolio():
-    user_portfolio= Portfolio.query.filter_by(id=id).first()
-    if user_portfolio != None:
-        return jsonify(user_portfolio.serialize())
+@app.route('/portfolio/<id>', methods=['GET'])
+def get_portfolio(id):
+    user_portfolios= Portfolio.query.filter_by(id=id).all()
+    if user_portfolios: 
+       
+        return jsonify([portfolio.serialize() for portfolio in user_portfolios])
+   
     return jsonify({"message": "Add stocks to your portfolio"})
         
 
 @app.route('/portfolio/<user_id>', methods=['POST'])
 def post_portfolio(user_id):
     request_data= request.get_json()
-    stock_added={
-        "symbol":request_data["symbol"],
-        "companyName":request_data["companyName"],
-        "price": request_data["price"],
-        "shares": request_data["shares"],
-        "totalReturn":request_data["totalReturn"]
+    stock = Portfolio.query.filter_by(companyName=request_data["companyName"]).filter_by(user_id=user_id).first()
+    if stock:
+        stock.shares+=request_data["shares"]
+        db.session.add(stock)
+        db.session.commit()    
+        return jsonify ({"Message":"one share added"})
+    stock_added=Portfolio(
+        symbol=request_data["symbol"],
+        companyName=request_data["companyName"],
+        price= request_data["price"],
+        shares= request_data["shares"],
+        totalReturn=request_data["totalReturn"]
        
-        }
+    )
     db.session.add(stock_added)
     db.session.commit()
     response_body = {
@@ -93,7 +103,7 @@ def post_portfolio(user_id):
 
     return jsonify(response_body), 200
 
-@app.route('/portfolio/<user_id>', methods=['DELETE'])
+@app.route('/portfolio/<id>', methods=['DELETE'])
 def handle_portfolio(id):
     stock_sold= Portfolio.query.filter_by(id=id).first()
     if stock_sold != None:
