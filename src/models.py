@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
+
 class User(db.Model):
     __tablename__="user"
     id = db.Column(db.Integer, primary_key=True)
@@ -21,23 +22,6 @@ class User(db.Model):
             "portfolio": [portfolio.serialize() for portfolio in self.portfolio.all()]
             # do not serialize the password, its a security breach
         }
-# class Stock(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     symbol = db.Column(db.String(120), unique=False, nullable=False)
-#     companyName = db.Column(db.String(120), unique=False, nullable=False)
-#     price = db.Column(db.Integer, unique=False, nullable=False)
-#     # password = db.Column(db.String(80), unique=False, nullable=False)
-#     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
-#     def __repr__(self):
-#         return '<Stock %r>' % self.symbol
-#     def serialize(self):
-#         return {
-#             "id": self.id,
-#             "symbol": self.symbol,
-#             "companyName":self.companyName,
-#             "price":self.price
-#             # do not serialize the password, its a security breach
-#         }
 
 class Portfolio(db.Model):
     __tablename__="portfolio"
@@ -60,3 +44,41 @@ class Portfolio(db.Model):
             "shares":self.shares,
             "totalReturn":self.totalReturn
         }
+
+class Transaction(db.Model):
+    __tablename__="transaction"
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(120), unique=False, nullable=False)
+    transactionName = db.Column(db.String(120), unique=False, nullable=False)
+    value = db.Column(db.Integer, unique=False, nullable=False)
+    date= db.Column(db.String(80),unique=False, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User')
+    def __repr__(self):
+        return '<transaction %r>' % self.companyName
+    def serialize(self):
+        return {
+            "id": self.id,
+            "symbol": self.symbol,
+            "transactionName":self.transactionName,
+            "value":self.value,
+            "date":self.date
+        }
+# class Stock(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     symbol = db.Column(db.String(120), unique=False, nullable=False)
+#     companyName = db.Column(db.String(120), unique=False, nullable=False)
+#     price = db.Column(db.Integer, unique=False, nullable=False)
+#     # password = db.Column(db.String(80), unique=False, nullable=False)
+#     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+#     def __repr__(self):
+#         return '<Stock %r>' % self.symbol
+#     def serialize(self):
+#         return {
+#             "id": self.id,
+#             "symbol": self.symbol,
+#             "companyName":self.companyName,
+#             "price":self.price
+#             # do not serialize the password, its a security breach
+#         }
+

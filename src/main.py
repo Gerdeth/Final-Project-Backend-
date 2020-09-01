@@ -5,7 +5,8 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User,Portfolio
+from models import db, User,Portfolio, Transaction
+import datetime
 
 #from models import Person
 app = Flask(__name__)
@@ -106,6 +107,27 @@ def handle_portfolio(id):
         }
         return jsonify(response_body), 200
     return jsonify({"message":"Stock not found" })
+
+@app.route('/transaction', methods=['POST'])
+def handle_transaction():
+    request_data= request.get_json()
+    x = datetime.datetime.now()
+    user = User.query.filter_by(id=request_data["user_id"]).first()
+    if not user:
+        return jsonify ({"Message":"No user found"})
+    new_transaction = Transaction(
+        user_id=request_data["user_id"],
+        transactionName=request_data["transactionName"], 
+        symbol=request_data["symbol"],
+        value=request_data["value"],
+        date= str(x.strftime("%x"))
+        )
+    db.session.add(new_transaction)
+    db.session.commit()
+    return jsonify({
+        "msg": "Transaction was created "
+    }),200
+
     
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
