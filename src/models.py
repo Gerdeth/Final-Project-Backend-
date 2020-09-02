@@ -8,6 +8,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=False, nullable=False)
     email = db.Column(db.String(120), unique=False, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
+    buying_power=db.Column(db.Float, unique=False, nullable=False)
     is_active = db.Column(db.Boolean(), default=False)
     portfolio = db.relationship('Portfolio', lazy='dynamic')
     
@@ -20,6 +21,7 @@ class User(db.Model):
             "email": self.email,
             "password": self.password,
             "is_active": self.is_active,
+            "buying_power":self.buying_power,
             "portfolio": [portfolio.serialize() for portfolio in self.portfolio.all()]
             # do not serialize the password, its a security breach
         }
@@ -29,7 +31,7 @@ class Portfolio(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(120), unique=False, nullable=False)
     companyName = db.Column(db.String(120), unique=False, nullable=False)
-    price = db.Column(db.Integer, unique=False, nullable=False)
+    price = db.Column(db.Float, unique=False, nullable=False)
     shares= db.Column(db.Integer, unique=False, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User')
@@ -41,7 +43,7 @@ class Portfolio(db.Model):
             "symbol": self.symbol,
             "companyName":self.companyName,
             "price":self.price,
-            "shares":self.shares, 
+            "shares":self.shares,    
         }
 
 class Transaction(db.Model):
@@ -49,6 +51,8 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(120), unique=False, nullable=False)
     transactionName = db.Column(db.String(120), unique=False, nullable=False)
+    price=db.Column(db.Float,unique=False, nullable=False)
+    shares=db.Column(db.Float,unique=False, nullable=False)
     value = db.Column(db.Integer, unique=False, nullable=False)
     date= db.Column(db.String(80),unique=False, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -60,6 +64,8 @@ class Transaction(db.Model):
             "id": self.id,
             "symbol": self.symbol,
             "transactionName":self.transactionName,
+            "price":self.price,
+            "shares":self.shares,
             "value":self.value,
             "date":self.date
         }

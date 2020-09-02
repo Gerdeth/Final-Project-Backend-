@@ -52,6 +52,7 @@ def handle_register_user():
         username=request_data["username"],
         email=request_data["email"], 
         password=request_data["password"],
+        buying_power=request_data["buying_power"],
         is_active=True
         )
     db.session.add(new_user)
@@ -81,10 +82,15 @@ def buy_stock(user_id):
         user_id=user_id,
         transactionName="buy", 
         symbol=request_data["symbol"],
-        value=request_data["shares"],
+        price=request_data["price"],
+        shares=request_data["shares"],
+        value=request_data["price"]*request_data["shares"],
         date= str(x.strftime("%x"))
         )
+    if user.buying_power < request_data["price"]*request_data["shares"]:
+        return jsonify({"message":"insufficient funds"})
     if stock:
+        user.buying_power-=request_data["price"]*request_data["shares"]
         stock.shares += request_data["shares"]
         db.session.add(new_transaction)
         db.session.add(stock)
@@ -97,26 +103,27 @@ def buy_stock(user_id):
         shares= request_data["shares"],
         user_id=user_id
     )
+    user.buying_power-=request_data["price"]*request_data["shares"]
     db.session.add(new_transaction)
     db.session.add(stock_added)
-    db.session.commit()
-    response_body = {
-        "msg": "Stock Added "
-    }
-    return jsonify(response_body), 200
+    db.session.commit() 
+    return jsonify({"message":"new stock created "}), 200
 
 @app.route('/portfolio/<user_id>', methods=['PUT'])
 def sell_stock(user_id):
+    user = User.query.filter_by(id=user_id).first()
     request_data = request.get_json()
     stock = Portfolio.query.filter_by(symbol=request_data["symbol"]).filter_by(user_id=user_id).first()
     if stock.shares< request_data["amount"]:
         return jsonify({"message":"not enough stock"})    
     stock.shares -= request_data["amount"]
-
+    user.buying_power += request_data["price"]*request_data["amount"]
     x = datetime.datetime.now()
     new_transaction = Transaction(
         user_id=user_id,
         transactionName="sell", 
+        price= request_data["price"],
+        shares= request_data["amount"],
         symbol=stock.symbol,
         value=request_data["amount"],
         date= str(x.strftime("%x"))
