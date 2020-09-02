@@ -68,7 +68,7 @@ def get_portfolio(id):
     return jsonify({"message": "Add stocks to your portfolio"})
 
 @app.route('/portfolio/<user_id>', methods=['POST'])
-def post_portfolio(user_id):
+def buy_stock(user_id):
 
     user = User.query.filter_by(id=user_id).first()
     if not user:
@@ -76,19 +76,28 @@ def post_portfolio(user_id):
 
     request_data = request.get_json()
     stock = Portfolio.query.filter_by(companyName=request_data["companyName"]).filter_by(user_id=user_id).first()
+    x = datetime.datetime.now()
+    new_transaction = Transaction(
+        user_id=user_id,
+        transactionName="buy", 
+        symbol=request_data["symbol"],
+        value=request_data["shares"],
+        date= str(x.strftime("%x"))
+        )
     if stock:
         stock.shares += request_data["shares"]
+        db.session.add(new_transaction)
         db.session.add(stock)
         db.session.commit()    
-        return jsonify ({"Message":"one share added"})
+        return jsonify ({"Message":"shares updated"})
     stock_added = Portfolio(
         symbol=request_data["symbol"],
         companyName=request_data["companyName"],
         price= request_data["price"],
         shares= request_data["shares"],
-        totalReturn=request_data["totalReturn"],
         user_id=user_id
     )
+    db.session.add(new_transaction)
     db.session.add(stock_added)
     db.session.commit()
     response_body = {
@@ -96,37 +105,44 @@ def post_portfolio(user_id):
     }
     return jsonify(response_body), 200
 
-@app.route('/portfolio/<id>', methods=['DELETE'])
-def handle_portfolio(id):
-    stock_sold = Portfolio.query.filter_by(id=id).first()
-    if stock_sold:
-        db.session.delete(stock_sold)
-        db.session.commit()
-        response_body = {
-            "msg": "Stock Sold "
-        }
-        return jsonify(response_body), 200
-    return jsonify({"message":"Stock not found" })
+@app.route('/portfolio/<user_id>', methods=['PUT'])
+def sell_stock(user_id):
+    request_data = request.get_json()
+    stock = Portfolio.query.filter_by(symbol=request_data["symbol"]).filter_by(user_id=user_id).first()
+    if stock.shares< request_data["amount"]:
+        return jsonify({"message":"not enough stock"})    
+    stock.shares -= request_data["amount"]
 
-@app.route('/transaction', methods=['POST'])
-def handle_transaction():
-    request_data= request.get_json()
     x = datetime.datetime.now()
-    user = User.query.filter_by(id=request_data["user_id"]).first()
-    if not user:
-        return jsonify ({"Message":"No user found"})
     new_transaction = Transaction(
-        user_id=request_data["user_id"],
-        transactionName=request_data["transactionName"], 
-        symbol=request_data["symbol"],
-        value=request_data["value"],
+        user_id=user_id,
+        transactionName="sell", 
+        symbol=stock.symbol,
+        value=request_data["amount"],
         date= str(x.strftime("%x"))
         )
+    if stock.shares :
+        db.session.add(new_transaction)
+        db.session.commit() 
+        return jsonify ({"Message":"stock sold"})
     db.session.add(new_transaction)
-    db.session.commit()
+    db.session.delete(stock)
+    db.session.commit() 
+    return jsonify ({"Message":"stock sold"})
+
+
+@app.route('/transaction', methods=['GET'])
+def handle_transaction():
+   
+    transactions=Transaction.query.all()
+    
     return jsonify({
-        "msg": "Transaction was created "
+        "msg": "Transactions listed ",
+        "Transactions":[transaction.serialize() for transaction in transactions]
     }),200
+
+
+
 
     
 # this only runs if `$ python src/main.py` is executed

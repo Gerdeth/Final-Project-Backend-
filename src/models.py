@@ -10,6 +10,7 @@ class User(db.Model):
     password = db.Column(db.String(80), unique=False, nullable=False)
     is_active = db.Column(db.Boolean(), default=False)
     portfolio = db.relationship('Portfolio', lazy='dynamic')
+    
     def __repr__(self):
         return '<User %r>' % self.username
     def serialize(self):
@@ -30,7 +31,6 @@ class Portfolio(db.Model):
     companyName = db.Column(db.String(120), unique=False, nullable=False)
     price = db.Column(db.Integer, unique=False, nullable=False)
     shares= db.Column(db.Integer, unique=False, nullable=False)
-    totalReturn=db.Column(db.Integer, unique=False, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User')
     def __repr__(self):
@@ -41,8 +41,7 @@ class Portfolio(db.Model):
             "symbol": self.symbol,
             "companyName":self.companyName,
             "price":self.price,
-            "shares":self.shares,
-            "totalReturn":self.totalReturn
+            "shares":self.shares, 
         }
 
 class Transaction(db.Model):
