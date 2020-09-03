@@ -112,20 +112,23 @@ def buy_stock(user_id):
 @app.route('/portfolio/<user_id>', methods=['PUT'])
 def sell_stock(user_id):
     user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return jsonify({"message":"Not a valid user ID"})
     request_data = request.get_json()
     stock = Portfolio.query.filter_by(symbol=request_data["symbol"]).filter_by(user_id=user_id).first()
-    if stock.shares< request_data["amount"]:
+    if not stock:
+        return jsonify({"Message":"This user has no stocks","Stocks":stock})
+    if stock.shares< request_data["shares"]:
         return jsonify({"message":"not enough stock"})    
-    stock.shares -= request_data["amount"]
-    user.buying_power += request_data["price"]*request_data["amount"]
+    stock.shares -= request_data["shares"]
+    user.buying_power += request_data["price"]*request_data["shares"]
     x = datetime.datetime.now()
     new_transaction = Transaction(
         user_id=user_id,
         transactionName="sell", 
         price= request_data["price"],
-        shares= request_data["amount"],
+        shares= request_data["shares"],
         symbol=stock.symbol,
-        value=request_data["amount"],
         date= str(x.strftime("%x"))
         )
     if stock.shares :
