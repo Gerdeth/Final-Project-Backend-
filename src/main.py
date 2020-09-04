@@ -66,7 +66,7 @@ def get_portfolio(id):
     user_portfolios = Portfolio.query.filter_by(user_id=id).all()
     if user_portfolios:        
         return jsonify([portfolio.serialize() for portfolio in user_portfolios])
-    return jsonify({"message": "Add stocks to your portfolio"})
+    return jsonify([])
 
 @app.route('/portfolio/<user_id>', methods=['POST'])
 def buy_stock(user_id):
@@ -84,7 +84,6 @@ def buy_stock(user_id):
         symbol=request_data["symbol"],
         price=request_data["price"],
         shares=request_data["shares"],
-        value=request_data["price"]*request_data["shares"],
         date= str(x.strftime("%x"))
         )
     if user.buying_power < request_data["price"]*request_data["shares"]:
