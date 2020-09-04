@@ -52,6 +52,7 @@ class Transaction(db.Model):
     symbol = db.Column(db.String(120), unique=False, nullable=False)
     transactionName = db.Column(db.String(120), unique=False, nullable=False)
     price=db.Column(db.Float,unique=False, nullable=False)
+    # value=db.Column(db.Float,unique=False, nullable=False)
     shares=db.Column(db.Float,unique=False, nullable=False)
     date= db.Column(db.String(80),unique=False, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -64,6 +65,7 @@ class Transaction(db.Model):
             "symbol": self.symbol,
             "transactionName":self.transactionName,
             "price":self.price,
+            # "value":self.value,
             "shares":self.shares,
             "date":self.date
         }
