@@ -7,6 +7,10 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User,Portfolio, Transaction
 import datetime
+from flask import Flask, jsonify, request
+from flask_jwt_simple import (
+    JWTManager, jwt_required, create_jwt, get_jwt_identity
+)
 
 #from models import Person
 app = Flask(__name__)
@@ -17,6 +21,9 @@ MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
 setup_admin(app)
+# Setup the Flask-JWT-Simple extension
+app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
+jwt = JWTManager(app)
 # Handle/serialize errors like a JSON object
 
 @app.errorhandler(APIException)
@@ -35,12 +42,33 @@ def get_all_user():
     return jsonify(all_users), 200
 
 @app.route('/login', methods=['POST'])
-def handle_login():
-    request_data=request.get_json()
-    users_query = User.query.filter_by(email=request_data["email"]).first()
-    if users_query:
-        return jsonify(users_query.serialize()), 200 
-    return  jsonify({"Message":"User not found"})
+def login():
+    if not request.is_json:
+        return jsonify({"msg": "Missing JSON in request"}), 400
+
+    params = request.get_json()
+    username = params.get('username', None)
+    password = params.get('password', None)
+
+    if not username:
+        return jsonify({"msg": "Missing username parameter"}), 400
+    if not password:
+        return jsonify({"msg": "Missing password parameter"}), 400
+
+    usercheck = User.query.filter_by(username=username, password=password).first()
+    if usercheck == None:
+      return jsonify({"msg": "Bad username or password"}), 401
+
+    # Identity can be any data that is json serializable
+    ret = {'jwt': create_jwt(identity=username), 'user': usercheck.serialize()}
+    return jsonify(ret), 200
+# @app.route('/login', methods=['POST'])
+# def handle_login():
+#     request_data=request.get_json()
+#     users_query = User.query.filter_by(email=request_data["email"]).first()
+#     if users_query:
+#         return jsonify(users_query.serialize()), 200 
+#     return  jsonify({"Message":"User not found"})
 
 @app.route('/register_user', methods=['POST'])
 def handle_register_user():
