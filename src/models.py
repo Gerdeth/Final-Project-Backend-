@@ -58,16 +58,16 @@ class Transaction(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User')
     def __repr__(self):
-        return '<transaction %r>' % self.companyName
+        return '<transaction %r>' % self.id
     def serialize(self):
         return {
             "id": self.id,
             "symbol": self.symbol,
-            "transactionName":self.transactionName,
-            "price":self.price,
-            # "value":self.value,
-            "shares":self.shares,
-            "date":self.date
+            "transactionName": self.transactionName,
+            "price": self.price,
+            "user_id": self.user_id,
+            "shares": self.shares,
+            "date": self.date
         }
 # class Stock(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)

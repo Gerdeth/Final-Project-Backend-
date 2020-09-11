@@ -168,15 +168,11 @@ def sell_stock(user_id):
     return jsonify ({"Message":"stock sold"})
 
 
-@app.route('/transaction', methods=['GET'])
-def handle_transaction():
-   
-    transactions=Transaction.query.all()
-    
-    return jsonify({
-        "msg": "Transactions listed ",
-        "Transactions":[transaction.serialize() for transaction in transactions]
-    }),200
+@app.route('/transactions/<user_id>', methods=['GET'])
+def get_transactions(id):
+    transactions=Transaction.query.filter_by(user_id=id)
+    transactions = list(map(lambda x: x.serialize(), transactions))
+    return jsonify(transactions), 200
 
 
 
