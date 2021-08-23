@@ -7,3 +7,5 @@ The backend also displays the dynamic username that the user has created.
 We have made multiple get requests to get data from the backend and display it on the front.
 A delete request to delete to sell a stock or remove any information necessary.
 A put request to update any information needed.
+A post request that add information needed such as when you first create an account for the application.
+A get request to 
